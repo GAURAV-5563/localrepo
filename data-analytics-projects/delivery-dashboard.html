@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101214">
+  <meta name="description" content="Explore delivery operations performance by city, restaurant category, and acquisition channel.">
+  <title>Dispatch Notes | Delivery Operations</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --paper: #101214;
+      --surface: #1a1d21;
+      --ink: #f1efea;
+      --muted: #a1a4a8;
+      --line: #34383d;
+      --primary: #f06b4d;
+      --coral: #ff8c6b;
+      --gold: #f2bd5b;
+      --blue: #84a9ff;
+      --hero: #1a1d21;
+      --sans: "DM Sans", "Segoe UI", sans-serif;
+      --serif: "Playfair Display", Georgia, serif;
+      --mono: "DM Mono", Consolas, monospace;
+      font-family: var(--sans);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    * { box-sizing: border-box; }
+    body { min-width: 320px; margin: 0; overflow-x: clip; background: var(--paper); color: var(--ink); }
+    a { color: inherit; }
+    button, select { font: inherit; }
+    .page { width: min(100% - 48px, 1180px); margin: 0 auto; }
+    .masthead { display: flex; align-items: center; justify-content: space-between; min-height: 72px; border-bottom: 1px solid var(--line); }
+    .wordmark { display: flex; align-items: center; gap: 11px; font-size: 14px; font-weight: 700; }
+    .mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 7px; background: var(--coral); color: white; font-family: var(--serif); font-size: 17px; }
+    .masthead-meta { display: flex; align-items: center; gap: 24px; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+    .source-link { color: var(--primary); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+    .hero { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: end; gap: 30px; padding: 50px 0 42px; color: var(--ink); }
+    .hero::before { position: absolute; z-index: -1; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%); background-color: var(--hero); background-image: repeating-linear-gradient(90deg, transparent 0, transparent 95px, rgba(241, 239, 234, .045) 96px, transparent 97px), repeating-linear-gradient(0deg, transparent 0, transparent 47px, rgba(241, 239, 234, .035) 48px, transparent 49px); content: ""; }
+    .hero .eyebrow { color: var(--coral); }
+    .hero .intro { color: #c4c5c7; }
+    .eyebrow { margin: 0 0 13px; color: var(--primary); font-family: var(--mono); font-size: 11px; }
+    h1 { max-width: 720px; margin: 0; font-family: var(--serif); font-size: 48px; font-weight: 500; line-height: 1.08; }
+    .intro { max-width: 610px; margin: 15px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+    .period { justify-self: end; padding: 14px 0 2px 18px; border-left: 2px solid var(--coral); color: #c4c5c7; font-family: var(--mono); font-size: 11px; line-height: 1.8; }
+    .period strong { display: block; color: var(--ink); font-size: 12px; font-weight: 500; }
+    .data-status { margin: 0; padding: 12px 0; color: var(--coral); font-size: 12px; }
+    .data-status[hidden] { display: none; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .metric { min-width: 0; padding: 19px 22px 20px 0; }
+    .metric + .metric { padding-left: 22px; border-left: 1px solid var(--line); }
+    .metric dt { color: var(--muted); font-size: 12px; }
+    .metric dd { margin: 8px 0 0; font-family: var(--serif); font-size: 31px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .metric:nth-child(2) dd { color: var(--coral); }
+    .metric:nth-child(3) dd { color: var(--blue); }
+    .metric:nth-child(4) dd { color: var(--gold); }
+    .metric-note { display: block; margin-top: 7px; color: var(--muted); font-family: var(--mono); font-size: 10px; }
+    .trend { padding: 36px 0 7px; }
+    .trend-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+    .trend-heading .eyebrow { margin-bottom: 7px; }
+    .trend-heading h2 { font-size: 24px; }
+    .trend-period { margin: 0 0 3px; color: var(--muted); font-family: var(--mono); font-size: 10px; }
+    .trend-chart { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: end; gap: 18px; min-height: 178px; margin-top: 17px; padding: 13px 14px 0; border-bottom: 1px solid var(--line); }
+    .month-column { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 9px; min-width: 0; height: 155px; }
+    .month-value { color: var(--muted); font-family: var(--mono); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .month-track { display: flex; align-items: end; justify-content: center; width: 100%; height: 100%; }
+    .month-fill { width: min(58px, 55%); height: var(--bar-height); background: var(--primary); transform-origin: bottom; animation: rise .55s ease-out both; }
+    .month-column.peak .month-fill { background: var(--gold); }
+    .month-label { padding-bottom: 10px; color: var(--muted); font-family: var(--mono); font-size: 10px; }
+    .trend-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .trend-note strong { color: var(--ink); }
+    @keyframes rise { from { transform: scaleY(.08); } to { transform: scaleY(1); } }
+    .analysis { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(250px, .75fr); gap: 48px; padding: 43px 0 54px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+    h2 { margin: 0; font-family: var(--serif); font-size: 25px; font-weight: 500; }
+    .section-caption { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .controls { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .tabs { display: flex; gap: 18px; }
+    .tab { padding: 5px 0 8px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); cursor: pointer; font-size: 12px; }
+    .tab[aria-selected="true"] { border-bottom-color: var(--primary); color: var(--ink); font-weight: 700; }
+    .select-wrap { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; }
+    .select-wrap select { max-width: 170px; padding: 8px 26px 8px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); color: var(--ink); font-size: 11px; }
+    .chart-list { display: grid; gap: 17px; padding: 22px 0 26px; }
+    .bar-row { display: grid; grid-template-columns: minmax(78px, 112px) minmax(80px, 1fr) 84px; align-items: center; gap: 13px; }
+    .bar-label { overflow: hidden; color: var(--ink); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { height: 9px; overflow: hidden; background: #30343a; }
+    .bar-fill { width: var(--bar-width); height: 100%; background: var(--bar-color, var(--primary)); transform-origin: left; animation: grow .55s ease-out both; }
+    .bar-value { color: var(--muted); font-family: var(--mono); font-size: 10px; text-align: right; white-space: nowrap; }
+    @keyframes grow { from { transform: scaleX(.08); } to { transform: scaleX(1); } }
+    .table-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 9px; border-top: 1px solid var(--line); }
+    .table-tools h3 { margin: 0; font-size: 12px; font-weight: 700; }
+    .download { padding: 7px 10px; border: 1px solid var(--line); border-radius: 5px; background: transparent; color: var(--primary); cursor: pointer; font-size: 11px; }
+    .download:disabled { cursor: wait; opacity: .5; }
+    .download:hover { border-color: var(--primary); background: #30231f; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; white-space: nowrap; }
+    th, td { padding: 10px 9px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+    th { color: var(--muted); font-family: var(--mono); font-size: 9px; font-weight: 400; text-transform: uppercase; }
+    th:first-child, td:first-child { padding-left: 0; text-align: left; }
+    td:first-child { font-weight: 600; }
+    .findings { align-self: start; padding-top: 3px; }
+    .findings h2 { padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+    .finding { padding: 19px 0; border-bottom: 1px solid var(--line); }
+    .finding-label { margin: 0 0 8px; color: var(--muted); font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
+    .finding-value { margin: 0; font-family: var(--serif); font-size: 22px; }
+    .finding-detail { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .method-note { margin-top: 21px; padding: 15px; border-left: 2px solid var(--gold); background: #242427; color: #cbc8c2; font-size: 11px; line-height: 1.6; }
+    .method-note strong { color: var(--ink); }
+    .footer { display: flex; justify-content: space-between; gap: 20px; padding: 17px 0 25px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .footer a { color: var(--primary); text-underline-offset: 3px; }
+    :focus-visible { outline: 2px solid var(--coral); outline-offset: 3px; }
+
+    @media (max-width: 760px) {
+      .page { width: min(100% - 36px, 600px); }
+      .hero { grid-template-columns: 1fr; gap: 20px; padding-top: 40px; }
+      h1 { font-size: 40px; }
+      .period { justify-self: start; }
+      .analysis { grid-template-columns: 1fr; gap: 38px; padding-top: 34px; }
+      .findings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 22px; }
+      .findings h2, .method-note { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .page { width: calc(100% - 30px); }
+      .masthead { min-height: 62px; }
+      .masthead-meta { gap: 10px; font-size: 9px; }
+      .hero { padding-top: 32px; }
+      h1 { font-size: 35px; }
+      .intro { font-size: 14px; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metric { padding: 15px 10px 15px 0; }
+      .metric + .metric { padding-left: 12px; }
+      .metric:nth-child(3) { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
+      .metric:nth-child(4) { border-top: 1px solid var(--line); }
+      .metric dd { font-size: 27px; }
+      .trend { padding-top: 28px; }
+      .trend-heading { align-items: start; flex-direction: column; gap: 7px; }
+      .trend-heading h2 { font-size: 22px; }
+      .trend-chart { gap: 8px; min-height: 158px; padding-right: 4px; padding-left: 4px; }
+      .month-column { height: 140px; }
+      .month-value { font-size: 9px; }
+      .section-heading { align-items: start; flex-direction: column; }
+      .controls { align-items: start; flex-direction: column; gap: 10px; }
+      .tabs { gap: 17px; }
+      .bar-row { grid-template-columns: 80px minmax(60px, 1fr) 76px; gap: 9px; }
+      .findings { grid-template-columns: 1fr; }
+      .findings h2, .method-note { grid-column: auto; }
+      .footer { flex-direction: column; gap: 7px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="masthead">
+      <a class="wordmark" href="./" aria-label="Localrepo home"><span class="mark" aria-hidden="true">D</span> Dispatch Notes</a>
+      <div class="masthead-meta"><span>OPERATIONS / 01</span><a class="source-link" href="https://github.com/GAURAV-5563/data-analytics/tree/main/analytics_projects/delivery_operations">Source analysis ↗</a></div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">DELIVERY OPERATIONS · SAMPLE REPORT</p>
+          <h1 id="page-title">Every delivery leaves a signal.</h1>
+          <p class="intro">A closer look at the small operational choices behind reliable delivery: where orders earn, where time slips, and which channels need attention.</p>
+        </div>
+        <div class="period"><strong id="period-range">Loading data…</strong><span id="dataset-meta">Preparing report</span></div>
+      </section>
+
+      <p class="data-status" id="data-status" role="status" aria-live="polite">Loading delivery data…</p>
+
+      <dl class="metrics" aria-label="Overall delivery metrics">
+        <div class="metric"><dt>Delivered revenue</dt><dd id="metric-revenue">—</dd><span class="metric-note" id="metric-delivered-note">From delivered orders</span></div>
+        <div class="metric"><dt>Orders cancelled</dt><dd id="metric-cancel-rate">—</dd><span class="metric-note" id="metric-order-note">of all placed orders</span></div>
+        <div class="metric"><dt>On-time delivery</dt><dd id="metric-on-time">—</dd><span class="metric-note">of completed orders</span></div>
+        <div class="metric"><dt>Average delivery</dt><dd id="metric-delivery-time">—</dd><span class="metric-note">completed orders only</span></div>
+      </dl>
+
+      <section class="trend" aria-labelledby="trend-title">
+        <div class="trend-heading">
+          <div><p class="eyebrow">MONTHLY SIGNAL</p><h2 id="trend-title">Delivered revenue, month by month</h2></div>
+          <p class="trend-period" id="trend-period">From the loaded CSV · USD</p>
+        </div>
+        <div class="trend-chart" id="monthly-chart" role="img" aria-label="Monthly delivered revenue bar chart"></div>
+        <p class="trend-note" id="trend-note"></p>
+      </section>
+
+      <section class="analysis" aria-label="Delivery performance breakdown">
+        <div class="performance">
+          <div class="section-heading">
+            <div><h2 id="breakdown-title">Performance by city</h2><p class="section-caption">Compare revenue and service quality across segments.</p></div>
+          </div>
+          <div class="controls">
+            <div class="tabs" role="tablist" aria-label="Performance segment">
+              <button class="tab" type="button" role="tab" aria-selected="true" data-dimension="city">City</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-dimension="category">Cuisine</button>
+              <button class="tab" type="button" role="tab" aria-selected="false" data-dimension="channel">Channel</button>
+            </div>
+            <label class="select-wrap" for="metric-select">Show
+              <select id="metric-select">
+                <option value="delivered_revenue">Delivered revenue</option>
+                <option value="on_time_rate">On-time rate</option>
+                <option value="cancellation_rate">Cancellation rate</option>
+                <option value="avg_customer_rating">Customer rating</option>
+                <option value="avg_delivery_minutes">Delivery time</option>
+              </select>
+            </label>
+          </div>
+          <div class="chart-list" id="chart-list" role="img" aria-label="Segment comparison chart"></div>
+          <div class="table-tools"><h3 id="table-title">City detail</h3><button class="download" id="download-csv" type="button" disabled>Download CSV</button></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th scope="col">Segment</th><th scope="col">Orders</th><th scope="col">Revenue</th><th scope="col">On time</th><th scope="col">Cancelled</th><th scope="col">Rating</th></tr></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <aside class="findings" aria-labelledby="findings-title">
+          <h2 id="findings-title">Worth a closer look</h2>
+          <article class="finding"><p class="finding-label">Best on-time city</p><p class="finding-value" id="insight-best-city">Loading…</p><p class="finding-detail" id="insight-best-city-detail">Calculated from completed orders.</p></article>
+          <article class="finding"><p class="finding-label">Channel to investigate</p><p class="finding-value" id="insight-cancel-channel">Loading…</p><p class="finding-detail" id="insight-cancel-channel-detail">Calculated from all placed orders.</p></article>
+          <article class="finding"><p class="finding-label">Top-rated cuisine</p><p class="finding-value" id="insight-top-cuisine">Loading…</p><p class="finding-detail" id="insight-top-cuisine-detail">Calculated from customer ratings.</p></article>
+          <div class="method-note"><strong>Read the data carefully.</strong> Orders are synthetic and generated with a fixed seed. These patterns demonstrate analysis methods, not real-world business performance.</div>
+        </aside>
+      </section>
+    </main>
+
+    <footer class="footer"><span>DELIVERY OPERATIONS · STATIC INTERACTIVE REPORT</span><span>Full project, generator, and methodology on <a href="https://github.com/GAURAV-5563/data-analytics/tree/main/analytics_projects/delivery_operations">GitHub</a>.</span></footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    (() => {
+      const dimensionConfig = {
+        city: { column: "city", title: "Performance by city", label: "city" },
+        category: { column: "restaurant_category", title: "Performance by cuisine", label: "cuisine" },
+        channel: { column: "acquisition_channel", title: "Performance by channel", label: "channel" }
+      };
+      const metrics = {
+        delivered_revenue: { label: "Delivered revenue", format: value => "$" + Math.round(value).toLocaleString("en-US"), color: "#f06b4d" },
+        on_time_rate: { label: "On-time rate", format: value => value.toFixed(1) + "%", color: "#84a9ff" },
+        cancellation_rate: { label: "Cancellation rate", format: value => value.toFixed(1) + "%", color: "#ff8c6b" },
+        avg_customer_rating: { label: "Customer rating", format: value => value.toFixed(2) + " / 5", color: "#f2bd5b" },
+        avg_delivery_minutes: { label: "Delivery time", format: value => value.toFixed(1) + " min", color: "#84a9ff" }
+      };
+      let activeDimension = "city";
+      let orders = [];
+      let segments = {};
+      let monthlyRevenue = [];
+      const chart = document.querySelector("#chart-list");
+      const tableBody = document.querySelector("#table-body");
+      const metricSelect = document.querySelector("#metric-select");
+      const downloadButton = document.querySelector("#download-csv");
+
+      const formatCurrency = value => new Intl.NumberFormat("en-US", {
+        style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1
+      }).format(value);
+      const formatPercent = value => value.toFixed(1) + "%";
+      const average = (rows, field) => {
+        const values = rows.map(row => row[field]).filter(Number.isFinite);
+        return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+      };
+
+      function summarize(column) {
+        const groups = new Map();
+        orders.forEach(order => {
+          const key = order[column];
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(order);
+        });
+        return Array.from(groups, ([name, rows]) => {
+          const delivered = rows.filter(row => row.order_status === "Delivered");
+          const cancelled = rows.filter(row => row.order_status === "Cancelled");
+          return {
+            name,
+            orders: rows.length,
+            delivered_orders: delivered.length,
+            delivered_revenue: delivered.reduce((sum, row) => sum + row.order_value, 0),
+            avg_delivery_minutes: average(delivered, "delivery_minutes"),
+            avg_customer_rating: average(delivered, "customer_rating"),
+            on_time_rate: delivered.length ? delivered.filter(row => row.delivery_minutes <= row.promised_minutes).length / delivered.length * 100 : 0,
+            cancellation_rate: rows.length ? cancelled.length / rows.length * 100 : 0
+          };
+        }).sort((a, b) => b.delivered_revenue - a.delivered_revenue);
+      }
+
+      function buildMonthlyRevenue() {
+        const totals = new Map();
+        orders.filter(row => row.order_status === "Delivered").forEach(order => {
+          const key = order.order_date.getFullYear() + "-" + String(order.order_date.getMonth() + 1).padStart(2, "0");
+          totals.set(key, (totals.get(key) || 0) + order.order_value);
+        });
+        monthlyRevenue = Array.from(totals, ([key, value]) => {
+          const [year, month] = key.split("-").map(Number);
+          return { key, label: new Date(year, month - 1, 1).toLocaleDateString("en-US", { month: "short" }), value };
+        }).sort((a, b) => a.key.localeCompare(b.key));
+      }
+
+      function updateSummary() {
+        const delivered = orders.filter(row => row.order_status === "Delivered");
+        const cancelled = orders.filter(row => row.order_status === "Cancelled");
+        const totalRevenue = delivered.reduce((sum, row) => sum + row.order_value, 0);
+        const onTime = delivered.filter(row => row.delivery_minutes <= row.promised_minutes).length;
+        const dates = orders.map(row => row.order_date).sort((a, b) => a - b);
+        const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", year: "numeric" });
+
+        document.querySelector("#period-range").textContent = dateFormat.format(dates[0]) + " — " + dateFormat.format(dates.at(-1));
+        const cityCount = new Set(orders.map(row => row.city)).size;
+        document.querySelector("#dataset-meta").textContent = orders.length.toLocaleString("en-US") + " generated orders · " + cityCount + " cities";
+        document.querySelector("#metric-revenue").textContent = formatCurrency(totalRevenue);
+        document.querySelector("#metric-delivered-note").textContent = delivered.length.toLocaleString("en-US") + " completed orders";
+        document.querySelector("#metric-cancel-rate").textContent = formatPercent(cancelled.length / orders.length * 100);
+        document.querySelector("#metric-order-note").textContent = cancelled.length.toLocaleString("en-US") + " of " + orders.length.toLocaleString("en-US") + " placed orders";
+        document.querySelector("#metric-on-time").textContent = formatPercent(onTime / delivered.length * 100);
+        document.querySelector("#metric-delivery-time").replaceChildren(
+          document.createTextNode(average(delivered, "delivery_minutes").toFixed(1)),
+          Object.assign(document.createElement("small"), { textContent: " min" })
+        );
+
+        segments = Object.fromEntries(Object.entries(dimensionConfig).map(([key, config]) => [key, {
+          title: config.title,
+          rows: summarize(config.column)
+        }]));
+
+        const bestCity = summarize("city").sort((a, b) => b.on_time_rate - a.on_time_rate)[0];
+        const cancellationChannel = summarize("acquisition_channel").sort((a, b) => b.cancellation_rate - a.cancellation_rate)[0];
+        const topCuisine = summarize("restaurant_category").sort((a, b) => b.avg_customer_rating - a.avg_customer_rating)[0];
+        document.querySelector("#insight-best-city").textContent = bestCity.name + " · " + formatPercent(bestCity.on_time_rate);
+        document.querySelector("#insight-best-city-detail").textContent = "Highest on-time rate across " + bestCity.delivered_orders.toLocaleString("en-US") + " delivered orders.";
+        document.querySelector("#insight-cancel-channel").textContent = cancellationChannel.name + " · " + formatPercent(cancellationChannel.cancellation_rate);
+        document.querySelector("#insight-cancel-channel-detail").textContent = "Highest cancellation rate across " + cancellationChannel.orders.toLocaleString("en-US") + " placed orders.";
+        document.querySelector("#insight-top-cuisine").textContent = topCuisine.name + " · " + topCuisine.avg_customer_rating.toFixed(2) + " / 5";
+        document.querySelector("#insight-top-cuisine-detail").textContent = "Highest average rating across " + topCuisine.delivered_orders.toLocaleString("en-US") + " delivered orders.";
+        document.querySelector("#trend-period").textContent = dates[0].getFullYear() === dates.at(-1).getFullYear()
+          ? dates[0].toLocaleDateString("en-US", { month: "short" }).toUpperCase() + " — " + dates.at(-1).toLocaleDateString("en-US", { month: "short" }).toUpperCase() + " " + dates.at(-1).getFullYear() + " · USD"
+          : dateFormat.format(dates[0]) + " — " + dateFormat.format(dates.at(-1)) + " · USD";
+      }
+
+      function renderMonthlyTrend() {
+        const highest = Math.max(...monthlyRevenue.map(month => month.value));
+        const peak = monthlyRevenue.find(month => month.value === highest);
+        const chart = document.querySelector("#monthly-chart");
+        chart.replaceChildren(...monthlyRevenue.map(month => {
+          const column = document.createElement("div");
+          column.className = "month-column" + (month === peak ? " peak" : "");
+          const value = document.createElement("span");
+          value.className = "month-value";
+          value.textContent = "$" + Math.round(month.value).toLocaleString("en-US");
+          const track = document.createElement("span");
+          track.className = "month-track";
+          track.setAttribute("aria-hidden", "true");
+          const fill = document.createElement("span");
+          fill.className = "month-fill";
+          fill.style.setProperty("--bar-height", month.value / highest * 100 + "%");
+          track.append(fill);
+          const label = document.createElement("span");
+          label.className = "month-label";
+          label.textContent = month.label;
+          column.append(value, track, label);
+          column.setAttribute("aria-label", month.label + " revenue: " + value.textContent);
+          return column;
+        }));
+        const change = (monthlyRevenue.at(-1).value / monthlyRevenue[0].value - 1) * 100;
+        const changeText = Math.abs(change).toFixed(1) + "% " + (change < 0 ? "below " : "above ") + monthlyRevenue[0].label;
+        const note = document.querySelector("#trend-note");
+        const highlight = document.createElement("strong");
+        highlight.textContent = peak.label + " was the strongest month";
+        note.replaceChildren(
+          highlight,
+          document.createTextNode(
+            " at $" + Math.round(peak.value).toLocaleString("en-US") + ". " + monthlyRevenue.at(-1).label + " finished " + changeText + "."
+          )
+        );
+      }
+
+      function render() {
+        const group = segments[activeDimension];
+        const metric = metrics[metricSelect.value];
+        const maxValue = Math.max(...group.rows.map(row => row[metricSelect.value]));
+        document.querySelector("#breakdown-title").textContent = group.title;
+        document.querySelector("#table-title").textContent = group.title.replace("Performance by ", "") + " detail";
+        chart.setAttribute("aria-label", metric.label + " by " + group.title.replace("Performance by ", ""));
+        chart.replaceChildren(...group.rows.map(row => {
+          const item = document.createElement("div");
+          item.className = "bar-row";
+          const name = document.createElement("span");
+          name.className = "bar-label";
+          name.textContent = row.name;
+          const track = document.createElement("span");
+          track.className = "bar-track";
+          track.setAttribute("aria-hidden", "true");
+          const fill = document.createElement("span");
+          fill.className = "bar-fill";
+          fill.style.setProperty("--bar-width", Math.max(3, row[metricSelect.value] / maxValue * 100) + "%");
+          fill.style.setProperty("--bar-color", metric.color);
+          track.append(fill);
+          const value = document.createElement("span");
+          value.className = "bar-value";
+          value.textContent = metric.format(row[metricSelect.value]);
+          item.append(name, track, value);
+          return item;
+        }));
+        tableBody.replaceChildren(...group.rows.map(row => {
+          const tr = document.createElement("tr");
+          const values = [row.name, row.orders.toLocaleString("en-US"), "$" + row.delivered_revenue.toLocaleString("en-US", { maximumFractionDigits: 0 }), formatPercent(row.on_time_rate), formatPercent(row.cancellation_rate), row.avg_customer_rating.toFixed(2)];
+          values.forEach((value, index) => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            if (index === 0) cell.setAttribute("scope", "row");
+            tr.append(cell);
+          });
+          return tr;
+        }));
+      }
+
+      document.querySelectorAll(".tab").forEach(tab => tab.addEventListener("click", () => {
+        activeDimension = tab.dataset.dimension;
+        document.querySelectorAll(".tab").forEach(item => item.setAttribute("aria-selected", String(item === tab)));
+        render();
+      }));
+      metricSelect.addEventListener("change", render);
+      downloadButton.addEventListener("click", () => {
+        const group = segments[activeDimension];
+        const columns = ["name", "orders", "delivered_orders", "delivered_revenue", "on_time_rate", "cancellation_rate", "avg_customer_rating", "avg_delivery_minutes"];
+        const escapeCsv = value => "\"" + String(value).replace(/\"/g, "\"\"") + "\"";
+        const csv = [columns.join(","), ...group.rows.map(row => columns.map(column => escapeCsv(row[column])).join(","))].join("\n");
+        const url = URL.createObjectURL(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = activeDimension + "_delivery_performance.csv";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+
+      function loadData() {
+        if (!window.Papa) {
+          document.querySelector("#data-status").textContent = "CSV parser did not load. Check your internet connection and refresh the dashboard.";
+          return;
+        }
+        Papa.parse("./delivery_data.csv", {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete(result) {
+            try {
+              if (result.errors.length) throw new Error("Some rows could not be read from delivery_data.csv.");
+              orders = result.data.filter(row => row.order_id).map(row => {
+                const orderDate = new Date(String(row.order_date).replace(" ", "T"));
+                const number = value => value === "" || value == null ? null : Number(value);
+                return {
+                  ...row,
+                  order_date: orderDate,
+                  order_value: number(row.order_value),
+                  promised_minutes: number(row.promised_minutes),
+                  delivery_minutes: number(row.delivery_minutes),
+                  customer_rating: number(row.customer_rating)
+                };
+              });
+              if (!orders.length || orders.some(row => Number.isNaN(row.order_date.getTime()) || !Number.isFinite(row.order_value))) {
+                throw new Error("The CSV has missing or invalid order fields.");
+              }
+              const delivered = orders.filter(row => row.order_status === "Delivered");
+              if (!delivered.length) throw new Error("The CSV contains no delivered orders to analyze.");
+              buildMonthlyRevenue();
+              updateSummary();
+              renderMonthlyTrend();
+              render();
+              downloadButton.disabled = false;
+              document.querySelector("#data-status").hidden = true;
+            } catch (error) {
+              document.querySelector("#data-status").textContent = error.message;
+            }
+          },
+          error() {
+            document.querySelector("#data-status").textContent = "Could not load delivery_data.csv. Open this page through a local web server.";
+          }
+        });
+      }
+
+      loadData();
+    })();
+  </script>
+</body>
+</html>
