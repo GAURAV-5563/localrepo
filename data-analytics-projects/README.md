@@ -8,19 +8,19 @@ Author - Gaurav Bisht (gaurav)
 
 ### Live dashboard
 
-After GitHub Pages finishes its first deployment, open the [Delivery Operations Dashboard](https://gaurav-5563.github.io/localrepo/delivery-dashboard.html).
+Open the live [Delivery Operations Dashboard](https://gaurav-5563.github.io/localrepo/data-analytics-projects/delivery-dashboard.html).
 
 The dashboard is a static browser app. Serve it over HTTP so it can load its local CSV. Its figures come from the reproducible [delivery operations analysis](https://github.com/GAURAV-5563/data-analytics/tree/main/analytics_projects/delivery_operations); the data is synthetic.
 
 ### Run the interactive dashboard locally
 
-The dashboard reads `delivery_data.csv` in the browser. Start a local server from the repository root so the browser can load the CSV:
+The dashboard reads `delivery_data.csv` in the browser. From the `data-analytics-projects` folder (the folder containing this README), start a local server so the browser can load the CSV:
 
 ```bash
 python -m http.server 8000
 ```
 
-Then open `http://localhost:8000/delivery-dashboard.html`. Regenerate the sample dataset with `python analytics_projects/delivery_operations/generate_data.py`, then copy the updated CSV to the repository root to refresh the dashboard data.
+Then open `http://localhost:8000/delivery-dashboard.html`. To refresh the sample data, regenerate `delivery_data.csv` in the source analysis project and copy the updated file into this folder.
 
 ## How the project works
 
@@ -29,6 +29,8 @@ Then open `http://localhost:8000/delivery-dashboard.html`. Regenerate the sample
 3. City, restaurant category, and acquisition-channel views can be compared across metrics; the selected segment can be exported as CSV.
 
 The sample data is synthetic, not live business data. The dashboard currently needs internet access to load its CSV parser and fonts from CDNs.
+
+GitHub Pages republishes the static site after updates are pushed to `main`.
 
 ## Future improvements
 
